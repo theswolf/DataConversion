@@ -1,0 +1,93 @@
+<form id="form" >
+    Timezone
+    <select name="dayformat" id="dayformat">
+    </select>
+
+    <br>
+    Seleziona data
+    <input type="datetime-local" id="date" />
+
+    <br>
+    Data con timezone
+    <input type="text" id="parsedDate" readonly="true" />
+
+    <br>
+    Data as Number
+    <input type="text" id="dateAsNumber" readonly="true" />
+
+    <br>
+
+
+</form>
+
+<button id="submitbtn">Submit</button>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 40px auto;
+    }
+
+    select {
+        margin: 5px 0;
+    }
+
+    h1, h2, h3 {
+        margin-top: 1.5em;
+        margin-bottom: 5px;
+    }
+
+    #parsedDate {
+        width:100%;
+    }
+</style>
+
+<script>
+    let selectTag = document.getElementById('dayformat');
+    let dateTag = document.getElementById('date');
+    let parsedDate = document.getElementById('parsedDate');
+    let dateAsNumber = document.getElementById('dateAsNumber');
+    Intl.supportedValuesOf('timeZone').map(tz => {
+        let opt = document.createElement("option");
+        opt.value = tz;
+        opt.innerHTML = tz;
+        selectTag.append(opt);
+    });
+
+    let changeTz = () => {
+        let tz = selectTag.options[selectTag.selectedIndex].text;
+        let date = dateTag.valueAsNumber;
+        dateAsNumber.value = date;
+        parsedDate.value = Intl.DateTimeFormat('it-IT', { dateStyle: 'full', timeStyle: 'long', timeZone: tz }).format(date);
+    }
+    selectTag.onchange = changeTz;
+    dateTag.onchange = changeTz;
+
+    document.getElementById('submitbtn').onclick = () => {
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/handleDate");
+    xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+    const body = JSON.stringify({
+        timeZone: selectTag.options[selectTag.selectedIndex].text,
+        dateNumber: dateAsNumber.value
+     });
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            alert(xhr.responseText);
+        }
+    }
+    xhr.onload = () => {
+        if (xhr.readyState == 4 && xhr.status == 201) {
+            console.log(JSON.parse(xhr.responseText));
+        } else {
+            console.log(`Error: ${xhr.status}`);
+        }
+        };
+    xhr.send(body);
+
+
+    }
+
+</script>
